@@ -126,7 +126,7 @@ A simple plugin to aggregate all IT and UT Jacoco test results at the parent mav
 					<plugin>
 						<groupId>com.github.spyhunter99</groupId>
 						<artifactId>jacoco-report-plugin</artifactId>
-						<version>1.0.0</version>
+						<version>1.0.2</version>
 						<reportSets>
 							<reportSet>
 								<reports>
