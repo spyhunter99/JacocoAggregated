@@ -6,11 +6,10 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        
-          <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-         <jacoco.it.execution.data.file>${project.build.directory}/coverage-reports/jacoco-it.exec</jacoco.it.execution.data.file>
+        <jacoco.it.execution.data.file>${project.build.directory}/coverage-reports/jacoco-it.exec</jacoco.it.execution.data.file>
         <jacoco.ut.execution.data.file>${project.build.directory}/coverage-reports/jacoco-ut.exec</jacoco.ut.execution.data.file>
     </properties>
     
@@ -80,7 +79,7 @@
         </pluginManagement>
     
         <plugins>
-              <plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.7.9</version>
@@ -159,10 +158,10 @@
                         </configuration>
                     </execution>
                  
-                    </executions>
+                </executions>
             </plugin>
             
-             <!-- Used for unit tests -->
+            <!-- Used for unit tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -183,7 +182,7 @@
     </build>
     <modules>
         <module>jacoco-report-plugin</module>
-      <!--  <module>vdd-test-module</module>
+        <!--  <module>vdd-test-module</module>
         <module>TestPdfCreator</module>-->
         <module>JacocoTestProject1</module>
         <module>JacodoTestProject2</module>
@@ -195,7 +194,7 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>jacoco-report-plugin</artifactId>
                 <version>${project.version}</version>
-                  <reportSets>
+                <reportSets>
                     <reportSet>
                         <reports>
                             <report>jacoco-aggregate</report>

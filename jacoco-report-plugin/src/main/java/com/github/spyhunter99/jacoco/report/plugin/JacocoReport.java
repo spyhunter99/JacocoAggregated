@@ -245,7 +245,7 @@ public class JacocoReport extends AbstractMavenReport {
                 sink.tableCell();
                 sink.link("jacoco/" + jacocoReports.get(i).getParentFile().getName() + "/" + jacocoReports.get(i).getName() + "/index.html");
 
-                sink.rawText(getMetric(new File(jacocoReports.get(i)+ "/index.html")));
+                sink.rawText(getMetric(new File(jacocoReports.get(i) + "/index.html")));
                 sink.link_();
                 sink.tableCell_();
                 sink.tableRow_();
@@ -430,15 +430,15 @@ public class JacocoReport extends AbstractMavenReport {
                         //since all artifacts should have unique names...this should be ok
                         File dest = new File("target/site/jacoco/" + p.getArtifactId() + "/" + jacocoIt.getName());
                         dest.mkdirs();
-                      org.apache.commons.io.FileUtils.copyDirectory(jacocoIt, dest);
-                        outDirs.add(dest);
+                        org.apache.commons.io.FileUtils.copyDirectory(jacocoIt, dest);
+                        outDirs.add(jacocoIt);
                     }
                     if (jacocoUt.exists()) {
                         //since all artifacts should have unique names...this should be ok
                         File dest = new File("target/site/jacoco/" + p.getArtifactId() + "/" + jacocoUt.getName());
                         dest.mkdirs();
                         org.apache.commons.io.FileUtils.copyDirectory(jacocoUt, dest);
-                        outDirs.add(dest);
+                        outDirs.add(jacocoUt);
                     }
 
                 }
@@ -452,27 +452,26 @@ public class JacocoReport extends AbstractMavenReport {
         Element table = doc.select("table").get(0);
         Elements rows = table.select("tr");
 
-        double value=0;
-        int rowCount=0;
+        double value = 0;
+        int rowCount = 0;
         for (int i = 1; i < rows.size(); i++) { //first row is the col names so skip it.
             Element row = rows.get(i);
             Elements cols = row.select("td");
 
             if (cols.get(2).text().contains("%")) {
                 //this is the code coverage
-                try{
-                value+=Double.parseDouble(cols.get(2).text().replace("%",""));
-                rowCount++;
-                }catch (NumberFormatException ex) {
-                    
+                try {
+                    value += Double.parseDouble(cols.get(2).text().replace("%", ""));
+                    rowCount++;
+                } catch (NumberFormatException ex) {
+
                 }
             }
         }
         if (rowCount > 0) {
-            return Double.toString(value/(double)rowCount) + "%";
+            return Double.toString(value / (double) rowCount) + "%";
         }
         return "N/A";
-        
-        
+
     }
 }
