@@ -17,6 +17,43 @@
     <name>Jacoco Aggregate Report Plugin Parent</name>
     <description>Generates a combined Jacoco report</description>
     
+    <url>https://github.com/spyhunter99/JacocoAggregated</url>
+    <organization>
+        <name>Spyhunter99@github</name>
+        <url>https://github.com/spyhunter99</url>
+    </organization>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/spyhunter99/JacocoAggregated/issues/</url>
+    </issueManagement>
+    
+    
+    <scm>
+        <connection>scm:git:https://github.com/spyhunter99/JacocoAggregated.git</connection>
+        <developerConnection>scm:git:https://github.com/spyhunter99/JacocoAggregated.git</developerConnection>
+        <url>https://github.com/spyhunter99/JacocoAggregated</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>sonatype-release</id>
+            <layout>default</layout>
+            <name>sonatype releases</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-snapshot</id>
+            <layout>default</layout>
+            <name>sonatype releases</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <site>
+            <id>website</id>
+            <url>https://github.com/spyhunter99/JacocoAggregated/releases</url>
+        </site>
+    </distributionManagement>
+    <inceptionYear>2017</inceptionYear>
+
     <developers>
         <developer>
             <id>alexoree</id>

@@ -15,11 +15,14 @@ package com.github.spyhunter99.jacoco.report.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.maven.doxia.sink.Sink;
@@ -202,8 +205,10 @@ public class JacocoReport extends AbstractMavenReport {
         }
         try {
 
-            List<File> jacocoReports = copyResources(project);
+            List<JacocoItem> jacocoReports = copyResources(project);
 
+            Set<JacocoItem> set = new HashSet<>();
+            set.addAll(jacocoReports);
             Sink sink = getSink();
 
             //simple table, module | coverage metric?
@@ -230,43 +235,67 @@ public class JacocoReport extends AbstractMavenReport {
             sink.tableHeaderCell();
             sink.rawText("Module");
             sink.tableHeaderCell_();
+
+            sink.tableHeaderCell();
+            sink.rawText("Report Type");
+            sink.tableHeaderCell_();
+
             sink.tableHeaderCell();
             sink.rawText("Metric");
             sink.tableHeaderCell_();
+
             sink.tableRow_();
 
+            DecimalFormat df = new DecimalFormat("##.##");
             //for reach module
-            for (int i = 0; i < jacocoReports.size(); i++) {
-                sink.tableRow();
-                sink.tableCell();
-                sink.rawText(jacocoReports.get(i).getParentFile().getName());
-                sink.tableCell_();
+            Iterator<JacocoItem> iterator = set.iterator();
+            while (iterator.hasNext()) {
+                JacocoItem next = iterator.next();
+                if (next.getReportDirs().isEmpty()) {
+                    /*sink.tableRow();
+                    sink.tableCell();
+                    sink.rawText(next.getModuleName());
+                    sink.tableCell_();
 
-                sink.tableCell();
-                sink.link("jacoco/" + jacocoReports.get(i).getParentFile().getName() + "/" + jacocoReports.get(i).getName() + "/index.html");
+                    sink.tableCell();
+                    sink.rawText("N/A");
+                    sink.tableCell_();
 
-                sink.rawText(getMetric(new File(jacocoReports.get(i) + "/index.html")));
-                sink.link_();
-                sink.tableCell_();
-                sink.tableRow_();
+                    sink.tableCell();
+                    sink.rawText("N/A");
+                    sink.tableCell_();
+                    sink.tableRow_();*/
+                } else {
+                    for (int k = 0; k < next.getReportDirs().size(); k++) {
+                        sink.tableRow();
+                        sink.tableCell();
+                        sink.rawText(next.getModuleName());
+                        sink.tableCell_();
+
+                        sink.tableCell();
+                        sink.rawText(next.getReportDirs().get(k).getReportDir().getName());
+                        sink.tableCell_();
+
+                        sink.tableCell();
+                        sink.link("jacoco/" + next.getModuleName() + "/" + next.getReportDirs().get(k).getReportDir().getName() + "/index.html");
+
+                        if (next.getModuleName() + "/" + next.getReportDirs().get(k).getMetric() != null) {
+                            sink.rawText(df.format(next.getReportDirs().get(k).getMetric()) + "%");
+                        } else {
+                            sink.rawText("N/A");
+                        }
+                        sink.link_();
+                        sink.tableCell_();
+                        sink.tableRow_();
+                    }
+                }
             }
 
             sink.table_();
             sink.paragraph_();
             sink.section2_();    //div
             sink.section1_();
-            //recurse into all sub modules and recursively copy any located jacoco reports
-            //`target/site/jacoco-ut`
-            //`target/site/jacoco-it`
-            //destination is (parent project)
-            //'target/site/jacoco/index
-            //'target/site/jacoco/${module}/
-            //output a doxia document which points to a jacoco index file
-            //index file contains.
-            //<h1>module name</h1>
-            //h2 module name
-            //content
-//TODO        generatedReport(getSink(), locale);
+  
         } catch (IOException ex) {
             Logger.getLogger(JacocoReport.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -302,154 +331,67 @@ public class JacocoReport extends AbstractMavenReport {
         return this.localesList;
     }
 
-    /**
-     * Return the directory for a given Locale and the current default Locale.
-     *
-     * @param basedir the base directory
-     * @param locale a Locale.
-     * @return File.
-     */
-    private File getLocaleDirectory(File basedir, Locale locale) {
-        if (locale.getLanguage().equals(getDefaultLocale().getLanguage())) {
-            return basedir;
-        }
-
-        return new File(basedir, locale.getLanguage());
-    }
-
-    /**
-     * Copy the from site dir to the to dir.
-     *
-     * @param from not null
-     * @param to not null
-     * @throws IOException if any
-     * @since 1.1
-     */
-    private void copySiteDir(final File from, final File to)
-            throws IOException {
-        if (from == null || !from.exists()) {
-            return;
-        }
-
-        // copy generated-site
-        for (final Locale locale : getAvailableLocales()) {
-            String excludes = getDefaultExcludesWithLocales(getAvailableLocales(), getDefaultLocale());
-            List<String> siteFiles = FileUtils.getFileNames(siteDirectory, "**/*", excludes, false);
-            File siteDirectoryLocale = new File(siteDirectory, locale.getLanguage());
-            if (!locale.getLanguage().equals(getDefaultLocale().getLanguage()) && siteDirectoryLocale.exists()) {
-                siteFiles = FileUtils.getFileNames(siteDirectoryLocale, "**/*", excludes, false);
-            }
-
-            List<String> generatedSiteFiles = FileUtils.getFileNames(from, "**/*", excludes, false);
-            File fromLocale = new File(from, locale.getLanguage());
-            if (!locale.getLanguage().equals(getDefaultLocale().getLanguage()) && fromLocale.exists()) {
-                generatedSiteFiles = FileUtils.getFileNames(fromLocale, "**/*", excludes, false);
-            }
-
-            for (final String generatedSiteFile : generatedSiteFiles) {
-                if (siteFiles.contains(generatedSiteFile)) {
-                    getLog().warn("Generated-site already contains a file in site: " + generatedSiteFile
-                            + ". Ignoring copying it!");
-                    continue;
-                }
-
-                if (!locale.getLanguage().equals(getDefaultLocale().getLanguage())) {
-                    if (fromLocale.exists()) {
-                        File in = new File(fromLocale, generatedSiteFile);
-                        File out = new File(new File(to, locale.getLanguage()), generatedSiteFile);
-                        out.getParentFile().mkdirs();
-                        FileUtils.copyFile(in, out);
-                    }
-                } else {
-                    File in = new File(from, generatedSiteFile);
-                    File out = new File(to, generatedSiteFile);
-                    out.getParentFile().mkdirs();
-                    FileUtils.copyFile(in, out);
-                }
-            }
-        }
-    }
-
-    /**
-     * Copy all site and generated-site files in the tmpSiteDirectory.
-     * <br/>
-     * <b>Note</b>: ignore copying of <code>generated-site</code> files if they
-     * already exist in the <code>site</code> dir.
-     *
-     * @param tmpSiteDir not null
-     * @throws IOException if any
-     * @since 1.1
-     */
-    private void prepareTempSiteDirectory(final File tmpSiteDir)
-            throws IOException {
-        // safety
-        tmpSiteDir.mkdirs();
-
-        // copy site
-        if (siteDirectory.exists()) {
-            FileUtils.copyDirectoryStructure(siteDirectory, tmpSiteDir);
-        }
-
-        // Remove SCM files
-        List<String> files
-                = FileUtils.getFileAndDirectoryNames(tmpSiteDir, FileUtils.getDefaultExcludesAsString(), null, true,
-                        true, true, true);
-        for (final String fileName : files) {
-            final File file = new File(fileName);
-
-            if (file.isDirectory()) {
-                FileUtils.deleteDirectory(file);
-            } else {
-                file.delete();
-            }
-        }
-
-        copySiteDir(generatedSiteDirectory, tmpSiteDir);
-    }
-
-    private List<File> copyResources(MavenProject project) throws IOException {
+  
+    private List<JacocoItem> copyResources(MavenProject project) throws IOException {
         if (project == null) {
             return Collections.EMPTY_LIST;
         }
-        List<File> outDirs = new ArrayList<>();
-        for (int i = 0; i < project.getCollectedProjects().size(); i++) {
-            MavenProject p = (MavenProject) project.getCollectedProjects().get(i);
+        List<JacocoItem> outDirs = new ArrayList<>();
 
-            if ("pom".equalsIgnoreCase(p.getPackaging())) {
-                for (int k = 0; k < project.getCollectedProjects().size(); k++) {
-                    outDirs.addAll(copyResources((MavenProject) p.getCollectedProjects().get(k)));
-                }
-            } else {
-                File moduleBaseDir = p.getBasedir();
-                File target = new File(moduleBaseDir, "target");
-                if (target.exists()) {
-                    File jacocoUt = new File(moduleBaseDir, "target/site/jacoco-ut/");  //TODO properterize
-                    File jacocoIt = new File(moduleBaseDir, "target/site/jacoco-it/");  //TODO properterize
+        if ("pom".equalsIgnoreCase(project.getPackaging())) {
+            for (int k = 0; k < project.getCollectedProjects().size(); k++) {
+                outDirs.addAll(copyResources((MavenProject) project.getCollectedProjects().get(k)));
+            }
+        } else {
+            File moduleBaseDir = project.getBasedir();
+            File target = new File(moduleBaseDir, "target");
+            if (target.exists()) {
+                File jacocoUt = new File(moduleBaseDir, "target/site/jacoco-ut/");  //TODO properterize
+                File jacocoIt = new File(moduleBaseDir, "target/site/jacoco-it/");  //TODO properterize
 
-                    if (jacocoIt.exists()) {
-                        //since all artifacts should have unique names...this should be ok
-                        File dest = new File("target/site/jacoco/" + p.getArtifactId() + "/" + jacocoIt.getName());
-                        dest.mkdirs();
-                        org.apache.commons.io.FileUtils.copyDirectory(jacocoIt, dest);
-                        outDirs.add(jacocoIt);
-                    }
-                    if (jacocoUt.exists()) {
-                        //since all artifacts should have unique names...this should be ok
-                        File dest = new File("target/site/jacoco/" + p.getArtifactId() + "/" + jacocoUt.getName());
-                        dest.mkdirs();
-                        org.apache.commons.io.FileUtils.copyDirectory(jacocoUt, dest);
-                        outDirs.add(jacocoUt);
-                    }
+                JacocoItem item = new JacocoItem();
+                item.setModuleName(project.getArtifactId());
+
+                if (jacocoIt.exists()) {
+                    //since all artifacts should have unique names...this should be ok
+                    JacocoReportMetric report = new JacocoReportMetric();
+                    report.setReportDir(jacocoIt);
+                    report.setMetric(getMetric(new File(jacocoIt, "index.html")));
+                    item.getReportDirs().add(report);
+                    File dest = new File("target/site/jacoco/" + project.getArtifactId() + "/" + jacocoIt.getName());
+                    dest.mkdirs();
+                    org.apache.commons.io.FileUtils.copyDirectory(jacocoIt, dest);
 
                 }
+                if (jacocoUt.exists()) {
+                    //since all artifacts should have unique names...this should be ok
+                    JacocoReportMetric report = new JacocoReportMetric();
+                    report.setReportDir(jacocoUt);
+                    report.setMetric(getMetric(new File(jacocoUt, "index.html")));
+                    item.getReportDirs().add(report);
+
+                    File dest = new File("target/site/jacoco/" + project.getArtifactId() + "/" + jacocoUt.getName());
+                    dest.mkdirs();
+                    org.apache.commons.io.FileUtils.copyDirectory(jacocoUt, dest);
+
+                }
+
+                outDirs.add(item);
+
             }
         }
+
         return outDirs;
     }
 
-    private String getMetric(File string) throws IOException {
+    private Double getMetric(File string) throws IOException {
         Document doc = Jsoup.parse(string, "UTF-8");
-        Element table = doc.select("table").get(0);
+        Elements tables = doc.select("table");
+        if (tables.size() == 0) {
+            return null;
+        }
+        Element table = tables.get(0);
+
         Elements rows = table.select("tr");
 
         double value = 0;
@@ -469,9 +411,9 @@ public class JacocoReport extends AbstractMavenReport {
             }
         }
         if (rowCount > 0) {
-            return Double.toString(value / (double) rowCount) + "%";
+            return (value / (double) rowCount);
         }
-        return "N/A";
+        return null;
 
     }
 }
