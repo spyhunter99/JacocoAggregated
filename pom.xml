@@ -32,8 +32,8 @@
         <connection>scm:git:https://github.com/spyhunter99/JacocoAggregated.git</connection>
         <developerConnection>scm:git:https://github.com/spyhunter99/JacocoAggregated.git</developerConnection>
         <url>https://github.com/spyhunter99/JacocoAggregated</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <distributionManagement>
         <repository>
@@ -121,8 +121,8 @@
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <preparationGoals>clean install</preparationGoals>
                         <goals>deploy</goals>
-                        <releaseProfiles>fgsms-release</releaseProfiles>
-                        <tagNameFormat>fgsms-@{project.version}</tagNameFormat>
+                        <releaseProfiles>jacoco-release</releaseProfiles>
+                        <tagNameFormat>jacoco-@{project.version}</tagNameFormat>
                     </configuration>
                 </plugin>
             </plugins>
@@ -257,4 +257,57 @@
         </plugins>
     </reporting>
      
+    <profiles>
+        <profile>
+            <id>jacoco-release</id>
+
+
+            <build>
+                <plugins>
+                    
+                    <!-- We want to deploy the artifact to a staging location for perusal -->
+                    <plugin>
+                        <inherited>true</inherited>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <updateReleaseInfo>true</updateReleaseInfo>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                   
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <!-- We want to sign the artifact, the POM, and all attached artifacts -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-release-artifacts</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- END SNIPPET: release-profile -->
+    </profiles> 
 </project>
