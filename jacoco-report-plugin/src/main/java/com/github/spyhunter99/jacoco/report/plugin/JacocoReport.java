@@ -196,13 +196,18 @@ public class JacocoReport extends AbstractMavenReport {
         return "An aggregated Jacoco test report";
     }
 
+    
+    @Override
+    public boolean canGenerateReport()
+    {
+        if (project.isExecutionRoot())
+            return true;
+        return false;
+    }
+    
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
-        if (project.hasParent()) {
-            //TODO revisit this in the future, i think 1 VDD per project is sufficient
-            //must there may be use cases for individual/module level docs
-            return;
-        }
+       
         try {
 
             List<JacocoItem> jacocoReports = copyResources(project);
